@@ -28,7 +28,11 @@ const authOptions: AuthOptions = {
       if (!dbUser) {
         console.log("No user logged in", dbUser);
         console.log(user, "------------");
-        // await prisma.user.create()
+        // await prisma.user.create({
+        //     // data:{
+        //     //     name
+        //     // }
+        // })
         return true;
       }
       console.log(dbUser);
