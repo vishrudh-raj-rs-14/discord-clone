@@ -1,8 +1,6 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import { AuthOptions } from "next-auth";
 import Google from "next-auth/providers/google";
 import prisma from "./db";
-import { PrismaClient } from "@prisma/client";
 
 const authOptions: AuthOptions = {
   pages: {
@@ -26,24 +24,33 @@ const authOptions: AuthOptions = {
         },
       });
       if (!dbUser) {
-        console.log("No user logged in", dbUser);
-        console.log(user, "------------");
-        // await prisma.user.create({
-        //     // data:{
-        //     //     name
-        //     // }
-        // })
+        const userCreated = await prisma.user.create({
+          data: {
+            name: user.name as string,
+            email: user.email as string,
+            isGoogleUer: true,
+          },
+        });
+        user.id = userCreated.id;
         return true;
       }
-      console.log(dbUser);
+      user.id = dbUser.id;
       return true;
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger, session }) {
       if (account) {
         token.access_token = account.access_token;
         token.id = user.id;
       }
+      if (trigger === "update" && session?.name) {
+        // Note, that `session` can be any arbitrary object, remember to validate it!
+        token.name = session.name;
+      }
       return token;
+    },
+    async redirect({ url, baseUrl }) {
+      console.log(url, baseUrl);
+      return baseUrl + "/channels/@me";
     },
   },
 };
